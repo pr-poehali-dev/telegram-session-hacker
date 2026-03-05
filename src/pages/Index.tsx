@@ -141,7 +141,7 @@ export default function Index() {
                 <div className="max-w-xl">
                   <div className="inline-flex items-center gap-2 bg-[#e87b20]/20 border border-[#e87b20]/40 rounded-full px-4 py-1.5 mb-6">
                     <span className="w-2 h-2 rounded-full bg-[#e87b20] animate-pulse" />
-                    <span className="text-[#e87b20] text-xs font-semibold uppercase tracking-widest">Сезон 2025 открыт</span>
+                    <span className="text-[#e87b20] text-xs font-semibold uppercase tracking-widest">Сезон 2026 открыт</span>
                   </div>
 
                   <h1 className="text-5xl md:text-7xl font-black text-white leading-none mb-2 tracking-tight">
