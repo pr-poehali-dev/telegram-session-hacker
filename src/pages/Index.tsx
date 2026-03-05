@@ -38,6 +38,58 @@ export default function Index() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  // Сценарий оформления заказа (Доставка)
+  const [orderOpen, setOrderOpen] = useState(false);
+  const [orderStep, setOrderStep] = useState<"form" | "code" | "payment" | "done">("form");
+  const [deliveryForm, setDeliveryForm] = useState({ name: "", email: "", phone: "", address: "", delivery: "cdek", payment: "card" });
+  const [emailCode, setEmailCode] = useState("");
+  const [emailCodeInput, setEmailCodeInput] = useState("");
+  const [emailCodeError, setEmailCodeError] = useState(false);
+  const [codeResent, setCodeResent] = useState(false);
+
+  const openOrderModal = () => {
+    setOrderOpen(true);
+    setOrderStep("form");
+    setDeliveryForm({ name: "", email: "", phone: "", address: "", delivery: "cdek", payment: "card" });
+    setEmailCode("");
+    setEmailCodeInput("");
+    setEmailCodeError(false);
+  };
+
+  const submitDeliveryForm = (e: React.FormEvent) => {
+    e.preventDefault();
+    const code = String(Math.floor(1000 + Math.random() * 9000));
+    setEmailCode(code);
+    setEmailCodeInput("");
+    setEmailCodeError(false);
+    setOrderStep("code");
+    // В реальном проекте — отправка на email через бэкенд
+    console.log("Код подтверждения:", code);
+  };
+
+  const verifyCode = () => {
+    if (emailCodeInput.trim() === emailCode) {
+      setOrderStep("payment");
+      setEmailCodeError(false);
+    } else {
+      setEmailCodeError(true);
+    }
+  };
+
+  const resendCode = () => {
+    const code = String(Math.floor(1000 + Math.random() * 9000));
+    setEmailCode(code);
+    setEmailCodeInput("");
+    setEmailCodeError(false);
+    setCodeResent(true);
+    setTimeout(() => setCodeResent(false), 3000);
+    console.log("Новый код:", code);
+  };
+
+  const confirmPayment = () => {
+    setOrderStep("done");
+  };
+
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages]);
@@ -170,11 +222,17 @@ export default function Index() {
                     >
                       Написать нам
                     </button>
+                    <button
+                      onClick={() => setOrderOpen(true)}
+                      className="px-8 py-3.5 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl text-base border border-white/25 backdrop-blur transition-all flex items-center gap-2"
+                    >
+                      <Icon name="ShoppingCart" size={18} /> Доставка
+                    </button>
                   </div>
 
                   {/* Мини-статистика */}
                   <div className="flex gap-8 mt-10">
-                    {[["50к+", "покупателей"], ["10 лет", "на рынке"], ["85+", "регионов"]].map(([val, label]) => (
+                    {[["5к+", "покупателей"], ["85+", "регионов"]].map(([val, label]) => (
                       <div key={label}>
                         <p className="text-white font-black text-xl">{val}</p>
                         <p className="text-white/50 text-xs">{label}</p>
@@ -590,6 +648,229 @@ export default function Index() {
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══ МОДАЛКА ОФОРМЛЕНИЯ ЗАКАЗА (Доставка) ══ */}
+      {orderOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm px-3">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+
+            {/* Шапка */}
+            <div className="bg-[#0d1b2e] px-5 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {/* Шаги */}
+                {(["form","code","payment","done"] as const).map((s, i) => (
+                  <div key={s} className="flex items-center gap-1">
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                      orderStep === s ? "bg-[#e87b20] text-white" :
+                      (["form","code","payment","done"].indexOf(orderStep) > i) ? "bg-green-400 text-white" :
+                      "bg-white/15 text-white/40"
+                    }`}>
+                      {(["form","code","payment","done"].indexOf(orderStep) > i) ? "✓" : i + 1}
+                    </div>
+                    {i < 3 && <div className="w-4 h-px bg-white/20" />}
+                  </div>
+                ))}
+              </div>
+              <button onClick={() => setOrderOpen(false)} className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center">
+                <Icon name="X" size={15} className="text-white" />
+              </button>
+            </div>
+
+            <div className="p-5">
+
+              {/* ШАГ 1: Форма */}
+              {orderStep === "form" && (
+                <form onSubmit={submitDeliveryForm} className="space-y-3">
+                  <div>
+                    <h3 className="font-bold text-[#0d1b2e] text-lg mb-0.5">Оформление заказа</h3>
+                    <p className="text-xs text-gray-400 mb-4">Заполните данные для доставки</p>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 block mb-1 font-medium">Ваше имя *</label>
+                    <input required placeholder="Иван Иванов" value={deliveryForm.name}
+                      onChange={e => setDeliveryForm(f => ({ ...f, name: e.target.value }))}
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0d1b2e]" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 block mb-1 font-medium">Email для подтверждения *</label>
+                    <input required type="email" placeholder="ivan@mail.ru" value={deliveryForm.email}
+                      onChange={e => setDeliveryForm(f => ({ ...f, email: e.target.value }))}
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0d1b2e]" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 block mb-1 font-medium">Номер телефона *</label>
+                    <input required type="tel" placeholder="+7 (___) ___-__-__" value={deliveryForm.phone}
+                      onChange={e => setDeliveryForm(f => ({ ...f, phone: e.target.value }))}
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0d1b2e]" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 block mb-1 font-medium">Адрес доставки *</label>
+                    <input required placeholder="Город, улица, дом" value={deliveryForm.address}
+                      onChange={e => setDeliveryForm(f => ({ ...f, address: e.target.value }))}
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0d1b2e]" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 block mb-1 font-medium">Способ доставки</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { val: "cdek", label: "СДЭК", sub: "от 120 ₽" },
+                        { val: "post", label: "Почта России", sub: "от 120 ₽" },
+                        { val: "ozon", label: "Ozon", sub: "от 120 ₽" },
+                        { val: "wb", label: "Wildberries", sub: "от 120 ₽" },
+                      ].map(d => (
+                        <button type="button" key={d.val}
+                          onClick={() => setDeliveryForm(f => ({ ...f, delivery: d.val }))}
+                          className={`border rounded-xl px-3 py-2 text-left transition-all ${
+                            deliveryForm.delivery === d.val
+                              ? "border-[#0d1b2e] bg-[#0d1b2e]/5"
+                              : "border-gray-200 hover:border-gray-300"
+                          }`}>
+                          <p className="text-xs font-semibold text-[#0d1b2e]">{d.label}</p>
+                          <p className="text-[10px] text-gray-400">{d.sub}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <button type="submit"
+                    className="w-full py-3 bg-[#e87b20] text-white font-bold rounded-xl hover:bg-[#d06a15] transition-colors mt-1">
+                    Далее — подтвердить email
+                  </button>
+                </form>
+              )}
+
+              {/* ШАГ 2: Код подтверждения email */}
+              {orderStep === "code" && (
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <div className="w-14 h-14 rounded-full bg-[#e87b20]/10 flex items-center justify-center mx-auto mb-3">
+                      <Icon name="Mail" size={28} className="text-[#e87b20]" />
+                    </div>
+                    <h3 className="font-bold text-[#0d1b2e] text-lg mb-1">Подтвердите email</h3>
+                    <p className="text-sm text-gray-500">Код отправлен на</p>
+                    <p className="font-semibold text-[#0d1b2e] text-sm">{deliveryForm.email}</p>
+                    <p className="text-xs text-gray-400 mt-1">(для теста код в консоли браузера)</p>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 block mb-1 font-medium text-center">Введите 4-значный код</label>
+                    <input
+                      maxLength={4}
+                      placeholder="_ _ _ _"
+                      value={emailCodeInput}
+                      onChange={e => { setEmailCodeInput(e.target.value.replace(/\D/g, "")); setEmailCodeError(false); }}
+                      className={`w-full border rounded-xl px-3 py-3 text-center text-2xl font-black tracking-[0.4em] focus:outline-none focus:ring-2 ${
+                        emailCodeError ? "border-red-400 ring-red-200 text-red-500" : "border-gray-200 focus:ring-[#0d1b2e] text-[#0d1b2e]"
+                      }`}
+                    />
+                    {emailCodeError && (
+                      <p className="text-red-500 text-xs text-center mt-1">Неверный код. Попробуйте ещё раз.</p>
+                    )}
+                    {codeResent && (
+                      <p className="text-green-600 text-xs text-center mt-1">Новый код отправлен!</p>
+                    )}
+                  </div>
+                  <button
+                    onClick={verifyCode}
+                    disabled={emailCodeInput.length !== 4}
+                    className="w-full py-3 bg-[#e87b20] text-white font-bold rounded-xl hover:bg-[#d06a15] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Подтвердить
+                  </button>
+                  <button onClick={resendCode} className="w-full text-sm text-gray-400 hover:text-[#0d1b2e] transition-colors py-1">
+                    Отправить код повторно
+                  </button>
+                </div>
+              )}
+
+              {/* ШАГ 3: Оплата */}
+              {orderStep === "payment" && (
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Icon name="CheckCircle" size={18} className="text-green-500" />
+                      <span className="text-sm text-green-600 font-semibold">Email подтверждён</span>
+                    </div>
+                    <h3 className="font-bold text-[#0d1b2e] text-lg mb-0.5">Выберите способ оплаты</h3>
+                    <p className="text-xs text-gray-400 mb-4">Безопасная оплата заказа</p>
+                  </div>
+
+                  {/* Итог */}
+                  <div className="bg-gray-50 rounded-xl p-3 text-sm space-y-1">
+                    <div className="flex justify-between"><span className="text-gray-500">Получатель</span><span className="font-medium text-[#0d1b2e]">{deliveryForm.name}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">Телефон</span><span className="font-medium text-[#0d1b2e]">{deliveryForm.phone}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">Доставка</span><span className="font-medium text-[#0d1b2e] capitalize">{
+                      { cdek: "СДЭК", post: "Почта России", ozon: "Ozon", wb: "Wildberries" }[deliveryForm.delivery]
+                    }</span></div>
+                    <div className="flex justify-between border-t border-gray-200 pt-1 mt-1"><span className="text-gray-500">Доставка</span><span className="text-[#0d1b2e] font-medium">от 120 ₽</span></div>
+                  </div>
+
+                  {/* Способы оплаты */}
+                  <div className="space-y-2">
+                    {[
+                      { val: "card", icon: "CreditCard", label: "Банковская карта", sub: "Visa, Mastercard, МИР" },
+                      { val: "sbp", icon: "Zap", label: "СБП", sub: "Быстрые платежи, без комиссии" },
+                      { val: "cod", icon: "Package", label: "Наложенный платёж", sub: "Оплата при получении" },
+                    ].map(p => (
+                      <button type="button" key={p.val}
+                        onClick={() => setDeliveryForm(f => ({ ...f, payment: p.val }))}
+                        className={`w-full border rounded-xl px-4 py-3 flex items-center gap-3 transition-all ${
+                          deliveryForm.payment === p.val
+                            ? "border-[#0d1b2e] bg-[#0d1b2e]/5"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}>
+                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                          deliveryForm.payment === p.val ? "bg-[#0d1b2e]" : "bg-gray-100"
+                        }`}>
+                          <Icon name={p.icon} size={16} className={deliveryForm.payment === p.val ? "text-[#e87b20]" : "text-gray-400"} />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-sm font-semibold text-[#0d1b2e]">{p.label}</p>
+                          <p className="text-xs text-gray-400">{p.sub}</p>
+                        </div>
+                        {deliveryForm.payment === p.val && (
+                          <Icon name="CheckCircle" size={18} className="text-[#0d1b2e] ml-auto" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button onClick={confirmPayment}
+                    className="w-full py-3 bg-[#e87b20] text-white font-bold rounded-xl hover:bg-[#d06a15] transition-colors flex items-center justify-center gap-2">
+                    <Icon name="Lock" size={16} /> Подтвердить заказ
+                  </button>
+                  <p className="text-[10px] text-gray-400 text-center">Нажимая кнопку, вы соглашаетесь с условиями оферты</p>
+                </div>
+              )}
+
+              {/* ШАГ 4: Готово */}
+              {orderStep === "done" && (
+                <div className="text-center py-4">
+                  <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+                    <Icon name="CheckCircle" size={34} className="text-green-500" />
+                  </div>
+                  <h3 className="font-bold text-[#0d1b2e] text-xl mb-2">Заказ оформлен!</h3>
+                  <p className="text-sm text-gray-500 mb-1">Подтверждение отправлено на</p>
+                  <p className="font-semibold text-[#0d1b2e] mb-4">{deliveryForm.email}</p>
+                  <div className="bg-gray-50 rounded-xl p-3 text-sm text-left space-y-1.5 mb-5">
+                    <div className="flex justify-between"><span className="text-gray-400">Способ доставки</span><span className="font-medium">{
+                      { cdek: "СДЭК", post: "Почта России", ozon: "Ozon", wb: "Wildberries" }[deliveryForm.delivery]
+                    }</span></div>
+                    <div className="flex justify-between"><span className="text-gray-400">Оплата</span><span className="font-medium">{
+                      { card: "Банковская карта", sbp: "СБП", cod: "Наложенный платёж" }[deliveryForm.payment]
+                    }</span></div>
+                    <div className="flex justify-between"><span className="text-gray-400">Статус</span><span className="text-green-600 font-semibold">Принят ✓</span></div>
+                  </div>
+                  <p className="text-xs text-gray-400 mb-4">Менеджер свяжется с вами по номеру {deliveryForm.phone} для уточнения деталей</p>
+                  <button onClick={() => setOrderOpen(false)}
+                    className="px-8 py-2.5 bg-[#0d1b2e] text-white rounded-xl font-semibold hover:bg-[#1a3a5c] transition-colors">
+                    Закрыть
+                  </button>
+                </div>
+              )}
+
             </div>
           </div>
         </div>
