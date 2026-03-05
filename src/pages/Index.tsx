@@ -196,7 +196,7 @@ export default function Index() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 {[
                   { icon: "Shield", title: "Проверенное качество", desc: "Краска держится несколько сезонов. Каждый балансир проходит контроль." },
-                  { icon: "Truck", title: "Доставка по России", desc: "СДЭК и Почта России в любой регион. Бесплатно от 2000 ₽." },
+                  { icon: "Truck", title: "Доставка по всей России", desc: "СДЭК, Почта России, Ozon, Wildberries — в любой регион. от 120 ₽." },
                   { icon: "Bell", title: "Уведомления о ценах", desc: "Подписывайтесь на уведомления о поступлении и снижении цен." },
                 ].map((f, i) => (
                   <div key={i} className="bg-white rounded-2xl p-6 shadow-sm hover:-translate-y-1 transition-transform border border-gray-100">
@@ -342,13 +342,13 @@ export default function Index() {
         {/* ══════════════ ДОСТАВКА ══════════════ */}
         {activeSection === "delivery" && (
           <div className="max-w-4xl mx-auto px-4 py-10">
-            <h1 className="text-4xl font-black text-[#0d1b2e] mb-1">Доставка по России</h1>
-            <p className="text-gray-500 mb-8">Отправляем балансиры в любой регион страны</p>
+            <h1 className="text-4xl font-black text-[#0d1b2e] mb-1">Доставка по всей России</h1>
+            <p className="text-gray-500 mb-8">Отправляем балансиры в любой регион страны — от 120 ₽</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
               {[
-                { icon: "Package", title: "СДЭК", desc: "В пункт выдачи или курьером. Срок 3–7 рабочих дней.", price: "от 250 ₽" },
-                { icon: "Mail", title: "Почта России", desc: "В любое отделение страны. Срок 5–14 рабочих дней.", price: "от 150 ₽" },
-                { icon: "Zap", title: "Экспресс", desc: "Срочно курьером по Москве и области в день заказа.", price: "от 500 ₽" },
+                { icon: "Package", title: "СДЭК", desc: "В пункт выдачи или курьером до двери. Срок 3–7 рабочих дней.", price: "от 120 ₽" },
+                { icon: "Mail", title: "Почта России", desc: "В любое почтовое отделение страны. Срок 5–14 рабочих дней.", price: "от 120 ₽" },
+                { icon: "ShoppingCart", title: "Ozon / Wildberries", desc: "Заказ через маркетплейсы — удобно и быстро в ваш ПВЗ.", price: "от 120 ₽" },
                 { icon: "ShoppingBag", title: "Самовывоз", desc: "Бесплатно. Адрес в Москве уточняется при заказе.", price: "Бесплатно" },
               ].map((d, i) => (
                 <div key={i} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:-translate-y-1 transition-transform">
